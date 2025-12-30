@@ -37,13 +37,14 @@ jobs:
         cd ios/App
         pod install
     
-    - name: Build iOS App
+    - name: Build iOS App (Debug - sin certificados)
       run: |
         cd ios/App
         xcodebuild -workspace App.xcworkspace \
           -scheme App \
-          -configuration Release \
-          -derivedDataPath build
+          -configuration Debug \
+          -derivedDataPath build \
+          -destination 'generic/platform=iOS'
     
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
