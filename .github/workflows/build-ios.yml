@@ -1,4 +1,4 @@
-name: Build iOS
+name: Build iOS IPA
 
 on:
   push:
@@ -22,46 +22,44 @@ jobs:
     - name: Build web
       run: npm run build
     
-    - name: Setup Capacitor iOS (si no existe)
+    - name: Setup Capacitor iOS
       run: |
         if [ ! -d "ios" ]; then
           npm install @capacitor/core@6 @capacitor/cli@6
           npx capacitor add ios
         fi
-    
-    - name: Sync Capacitor
-      run: npx capacitor sync ios
+        npx capacitor sync ios
     
     - name: Install CocoaPods
       run: |
         cd ios/App
         pod install
     
-    - name: Build iOS App (Debug Archive)
+    - name: Build Archive
       run: |
         cd ios/App
         xcodebuild -workspace App.xcworkspace \
           -scheme App \
           -configuration Debug \
           -archivePath build/App.xcarchive \
-          -derivedDataPath build \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO \
           archive
     
-    - name: Export to IPA
+    - name: Generate IPA
       run: |
         cd ios/App
-        mkdir -p build/export
-        xcodebuild -exportArchive \
-          -archivePath build/App.xcarchive \
-          -exportPath build/export \
-          -exportOptionsPlist exportOptions.plist \
-          -allowProvisioningUpdates
+        mkdir -p build/output
+        cp -r build/App.xcarchive/Products/Applications/App.app build/output/
+        cd build/output
+        mkdir Payload
+        mv App.app Payload/
+        zip -r App.ipa Payload
+        ls -lh App.ipa
     
-    - name: Upload IPA Artifact
+    - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
         name: ios-ipa
-        path: ios/App/build/export/*.ipa
+        path: ios/App/build/output/App.ipa
