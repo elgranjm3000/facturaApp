@@ -37,20 +37,31 @@ jobs:
         cd ios/App
         pod install
     
-    - name: Build iOS App (Debug - sin certificados)
+    - name: Build iOS App (Debug Archive)
       run: |
         cd ios/App
         xcodebuild -workspace App.xcworkspace \
           -scheme App \
           -configuration Debug \
+          -archivePath build/App.xcarchive \
           -derivedDataPath build \
-          -destination 'generic/platform=iOS'\
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_ALLOWED=NO \
+          archive
     
-    - name: Upload Artifact
+    - name: Export to IPA
+      run: |
+        cd ios/App
+        mkdir -p build/export
+        xcodebuild -exportArchive \
+          -archivePath build/App.xcarchive \
+          -exportPath build/export \
+          -exportOptionsPlist exportOptions.plist \
+          -allowProvisioningUpdates
+    
+    - name: Upload IPA Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ios-build
-        path: ios/App/build
+        name: ios-ipa
+        path: ios/App/build/export/*.ipa
