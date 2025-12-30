@@ -9,10 +9,10 @@ jobs:
     runs-on: macos-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
     
@@ -22,13 +22,22 @@ jobs:
     - name: Build web
       run: npm run build
     
-    - name: Setup Capacitor
+    - name: Setup Capacitor iOS (si no existe)
       run: |
-        npm install @capacitor/core@6 @capacitor/cli@6
-        npx capacitor add ios
-        npx capacitor sync ios
+        if [ ! -d "ios" ]; then
+          npm install @capacitor/core@6 @capacitor/cli@6
+          npx capacitor add ios
+        fi
     
-    - name: Build iOS
+    - name: Sync Capacitor
+      run: npx capacitor sync ios
+    
+    - name: Install CocoaPods
+      run: |
+        cd ios/App
+        pod install
+    
+    - name: Build iOS App
       run: |
         cd ios/App
         xcodebuild -workspace App.xcworkspace \
